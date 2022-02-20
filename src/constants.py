@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+
+TERMINAL_RED = "\x1b[38;2;255;0;0m"
+TERMINAL_NC = "\033[0m"
+
+# window
+DEFAULT_WIDTH, DEFAULT_HEIGHT = 800, 600
+DEFAULT_SCOREBOX_WIDTH, DEFAULT_SCOREBOX_HEIGHT = 0, 0
+DEFAULT_FONT = ("Ubuntu", 60)
+
+HR_WIDTH, HR_HEIGHT = 1200, 900
+HR_SCOREBOX_WIDTH, HR_SCOREBOX_HEIGHT = 0, 0
+HR_FONT = ("Ubuntu", 80)
+
+COLOURSCHEMES = {
+    "default" : ((0, 0, 0), (255, 255, 255))
+}
+# TODO: add more themes (e.g. inspo from vim colorschemes)
+
+# game elements
+WIN_SCORE = 8
+PADDLE_WIDTH, PADDLE_HEIGHT = 20, 100
+PADDLE_MAX_VEL = 5
+BALL_RADIUS = 7
+BALL_MAX_VEL = 6
