@@ -13,9 +13,9 @@ HR_SCOREBOX_WIDTH, HR_SCOREBOX_HEIGHT = 0, 0
 HR_FONT = ("Ubuntu", 80)
 
 COLOURSCHEMES = {
-    "default" : ((0, 0, 0), (255, 255, 255))
+    "default": ((0, 0, 0), (255, 255, 255))
 }
-# TODO: add more themes (e.g. inspo from vim colorschemes)
+# TODO: more themes
 
 # game elements
 WIN_SCORE = 8

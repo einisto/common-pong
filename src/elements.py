@@ -54,9 +54,10 @@ class Ball:
 
 
 class Scoreboard:
-    def __init__(self, screen, x, y, colour, font):
+    def __init__(self, screen, window_middle, x, y, colour, font):
         self.screen = screen
         self.font = font
+        self.window_middle = window_middle
         self.x = x
         self.y = y
         self.colour = colour
@@ -72,7 +73,8 @@ class Scoreboard:
         label1.set_alpha(100)
         label2.set_alpha(100)
         self.screen.blit(label1, (self.x, self.y))
-        self.screen.blit(label2, (3 * self.x, self.y))
+        self.screen.blit(label2, (self.window_middle +
+                         self.x - label1.get_width(), self.y))
 
     def highlight(self):
         # https://stackoverflow.com/questions/25714188/pygame-and-sleep-flashing-an-image-on-the-screen-and-going-back-to-the-initial
