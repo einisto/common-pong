@@ -32,8 +32,10 @@ class Paddle:
 class Ball:
     def __init__(self, screen, x, y, colour):
         self.screen = screen
-        self.max_vel = BALL_MAX_VEL
         self.radius = BALL_RADIUS
+        self.max_vel = BALL_MAX_VEL
+        self.x_vel = BALL_MAX_VEL
+        self.y_vel = 0
         self.x = self.original_x = x
         self.y = self.original_y = y
         self.colour = colour
@@ -43,10 +45,8 @@ class Ball:
                            (self.x, self.y), self.radius)
 
     def move(self):
-        # ball hits paddle:
-        # --> x changes to opposite direction (e.g. from left to right)
-        # --> y changes according to https://stackoverflow.com/questions/51979115/pong-game-physics
-        pass
+        self.x += self.x_vel
+        self.y += self.y_vel
 
     def reset(self):
         self.x = self.original_x

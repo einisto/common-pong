@@ -38,16 +38,40 @@ def draw_elements(screen, colourscheme, size, border_margin, paddles, ball, scor
 
 def start_pause():
     # TODO
-    pass
+    print("pause started")
 
 
 def stop_pause():
     # TODO
-    pass
+    print("pause ended")
 
 
-def handle_collision():
-    pass
+def handle_collision(window_height, left_paddle, right_paddle, ball):
+    left_middle = left_paddle.y + left_paddle.height // 2
+    right_middle = right_paddle.y + right_paddle.height // 2
+    paddle_height = left_paddle.height
+
+    # ball hits paddle:
+    # --> x changes to opposite direction (e.g. from left to right)
+    # --> y changes according to https://stackoverflow.com/questions/51979115/pong-game-physics
+
+    # wall-ball-collision
+    if ball.y - ball.radius <= 0:
+        ball.y_vel *= -1
+    elif ball.y + ball.radius >= window_height:
+        ball.y_vel *= -1
+
+    # paddle-ball-collision
+    if ball.x - ball.radius <= left_paddle.x + left_paddle.width:
+        if left_paddle.y < ball.y < left_paddle.y + paddle_height:
+            ball.y_vel = ((ball.y - left_middle) / paddle_height) * ball.max_vel
+            ball.x_vel *= -1
+            print(ball.y_vel)
+    elif ball.x + ball.radius >= right_paddle.x:
+        if right_paddle.y < ball.y < right_paddle.y + paddle_height:
+            ball.y_vel = ((ball.y - right_middle) / paddle_height) * ball.max_vel
+            ball.x_vel *= -1
+            print(ball.y_vel)
 
 
 def main(colourscheme, high_res, gamemode=None):
@@ -77,8 +101,8 @@ def main(colourscheme, high_res, gamemode=None):
     scoreboard = Scoreboard(
         screen, size[0] // 2, size[0] // 4, 3 * border_margin, colourscheme[1], font)
 
-    act_rect = Rect(x_mid - 55, size[1] - border_margin - 30, 25, 20)
-    act_trigon = Rect(x_mid + 30, size[1] - border_margin - 30, 25, 20)
+    act_rect = Rect(size[0] // 2 - 55, size[1] - border_margin - 30, 25, 20)
+    act_trigon = Rect(size[0] // 2 + 30, size[1] - border_margin - 30, 25, 20)
 
     pause = 0
     done = 0
@@ -91,8 +115,10 @@ def main(colourscheme, high_res, gamemode=None):
                 done = 1
             elif e.type == pygame.MOUSEBUTTONDOWN:
                 if act_rect.collidepoint(mouse) and not pause:
+                    pause = 1
                     start_pause()
                 elif act_trigon.collidepoint(mouse) and pause:
+                    pause = 0
                     stop_pause()
 
         if keys[K_f] and paddle1.y + paddle1.max_vel < size[1] - border_margin - paddle1.height:
@@ -106,6 +132,11 @@ def main(colourscheme, high_res, gamemode=None):
 
         if keys[K_k] and paddle2.y + paddle2.max_vel > border_margin + 5:
             paddle2.move(down=False)
+
+        # TODO evaluate goal here before checking for collision
+
+        ball.move()
+        handle_collision(size[1], paddle1, paddle2, ball)
 
         draw_elements(screen, colourscheme, size, border_margin,
                       (paddle1, paddle2), ball, scoreboard)
