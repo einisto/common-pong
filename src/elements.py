@@ -51,6 +51,8 @@ class Ball:
     def reset(self):
         self.x = self.original_x
         self.y = self.original_y
+        self.y_vel = 0
+        self.x_vel *= -1
 
 
 class Scoreboard:
@@ -63,9 +65,14 @@ class Scoreboard:
         self.colour = colour
         self.score1 = self.score2 = 0
 
-    def update(self, scores):
-        self.score1 = scores[0]
-        self.score2 = scores[1]
+    def update(self, scorer):
+        if scorer:
+            self.score1 += 1
+        else:
+            self.score2 += 1
+
+    def game_end(self):
+        return self.score1 == 8 or self.score2 == 8
 
     def draw(self):
         label1 = self.font.render(str(self.score1), 1, self.colour)
@@ -81,4 +88,4 @@ class Scoreboard:
         pass
 
     def reset(self):
-        pass
+        self.score1 = self.score2 = 0

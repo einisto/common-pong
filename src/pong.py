@@ -7,7 +7,7 @@ from constants import *
 from elements import Paddle, Ball, Scoreboard
 
 
-def draw_elements(screen, colourscheme, size, border_margin, paddles, ball, scoreboard):
+def render_elements(screen, colourscheme, size, border_margin, paddles, ball, scoreboard):
     screen.fill(colourscheme[0])
 
     for p in paddles:
@@ -51,10 +51,6 @@ def handle_collision(window_height, left_paddle, right_paddle, ball):
     right_middle = right_paddle.y + right_paddle.height // 2
     paddle_height = left_paddle.height
 
-    # ball hits paddle:
-    # --> x changes to opposite direction (e.g. from left to right)
-    # --> y changes according to https://stackoverflow.com/questions/51979115/pong-game-physics
-
     # wall-ball-collision
     if ball.y - ball.radius <= 0:
         ball.y_vel *= -1
@@ -64,19 +60,19 @@ def handle_collision(window_height, left_paddle, right_paddle, ball):
     # paddle-ball-collision
     if ball.x - ball.radius <= left_paddle.x + left_paddle.width:
         if left_paddle.y < ball.y < left_paddle.y + paddle_height:
-            ball.y_vel = ((ball.y - left_middle) / paddle_height) * ball.max_vel
+            ball.y_vel = ((ball.y - left_middle) /
+                          paddle_height) * ball.max_vel
             ball.x_vel *= -1
             print(ball.y_vel)
     elif ball.x + ball.radius >= right_paddle.x:
         if right_paddle.y < ball.y < right_paddle.y + paddle_height:
-            ball.y_vel = ((ball.y - right_middle) / paddle_height) * ball.max_vel
+            ball.y_vel = ((ball.y - right_middle) /
+                          paddle_height) * ball.max_vel
             ball.x_vel *= -1
             print(ball.y_vel)
 
 
-def main(colourscheme, high_res, gamemode=None):
-    pygame.init()
-
+def handle_config(high_res, gamemode):
     if high_res:
         size = (HR_WIDTH, HR_HEIGHT)
         font = pygame.font.SysFont(
@@ -88,6 +84,38 @@ def main(colourscheme, high_res, gamemode=None):
             DEFAULT_FONT[0], DEFAULT_FONT[1], bold=True, italic=False)
         border_margin = 10
 
+    return size, font, border_margin
+
+
+def check_paddle_movement(window_height, border_margin, keys, paddle1, paddle2):
+    if keys[K_f] and paddle1.y + paddle1.max_vel < window_height - border_margin - paddle1.height:
+        paddle1.move(down=True)
+
+    if keys[K_d] and paddle1.y + paddle1.max_vel > border_margin + 5:
+        paddle1.move(down=False)
+
+    if keys[K_j] and paddle2.y + paddle2.max_vel < window_height - border_margin - paddle2.height:
+        paddle2.move(down=True)
+
+    if keys[K_k] and paddle2.y + paddle2.max_vel > border_margin + 5:
+        paddle2.move(down=False)
+
+
+def check_goal(ball_x, window_width, scoreboard):
+    if ball_x <= 0:
+        scoreboard.update(0)
+        return True
+    elif ball_x >= window_width:
+        scoreboard.update(1)
+        return True
+
+    return False
+
+
+def main(colourscheme, high_res, gamemode=None):
+    pygame.init()
+
+    size, font, border_margin = handle_config(high_res, gamemode)
     screen = pygame.display.set_mode([size[0], size[1]])
     pygame.display.set_caption("PONG")
     clock = pygame.time.Clock()
@@ -121,25 +149,24 @@ def main(colourscheme, high_res, gamemode=None):
                     pause = 0
                     stop_pause()
 
-        if keys[K_f] and paddle1.y + paddle1.max_vel < size[1] - border_margin - paddle1.height:
-            paddle1.move(down=True)
-
-        if keys[K_d] and paddle1.y + paddle1.max_vel > border_margin + 5:
-            paddle1.move(down=False)
-
-        if keys[K_j] and paddle2.y + paddle2.max_vel < size[1] - border_margin - paddle2.height:
-            paddle2.move(down=True)
-
-        if keys[K_k] and paddle2.y + paddle2.max_vel > border_margin + 5:
-            paddle2.move(down=False)
-
-        # TODO evaluate goal here before checking for collision
+        check_paddle_movement(size[1], border_margin, keys, paddle1, paddle2)
 
         ball.move()
         handle_collision(size[1], paddle1, paddle2, ball)
 
-        draw_elements(screen, colourscheme, size, border_margin,
-                      (paddle1, paddle2), ball, scoreboard)
+        if check_goal(ball.x, size[0], scoreboard):
+            if scoreboard.game_end():
+                scoreboard.reset()
+                paddle1.reset()
+                paddle2.reset()
+                ball.reset()
+                # tmp solution
+                pygame.time.wait(2000)
+            else:
+                ball.reset()
+
+        render_elements(screen, colourscheme, size, border_margin,
+                        (paddle1, paddle2), ball, scoreboard)
 
         pygame.display.update()
         clock.tick(60)
@@ -148,6 +175,7 @@ def main(colourscheme, high_res, gamemode=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Classic game of Pong with a few comfy additions")
+
     # TODO: add argument to choose between lan/wifi, ai & local (gamemode-argument in main)
     parser.add_argument("-r", action="store_true",
                         help="Use higher resolution (1200x900)")
