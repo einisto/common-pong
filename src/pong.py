@@ -4,151 +4,138 @@ import argparse
 from pygame import gfxdraw
 from pygame.locals import *
 from constants import *
-from elements import Paddle, Ball, Scoreboard
+
+CHOSEN_COLOURSCHEME = COLOURSCHEMES["default"]
 
 
-def render_elements(screen, colourscheme, size, border_margin, paddles, ball, scoreboard):
-    screen.fill(colourscheme[0])
+def set_custom_colourscheme(selection):
+    CHOSEN_COLOURSCHEME = COLOURSCHEMES[selection]
+    PADDLE1.colour = CHOSEN_COLOURSCHEME[1]
+    PADDLE2.colour = CHOSEN_COLOURSCHEME[1]
+    BALL.colour = CHOSEN_COLOURSCHEME[1]
+    SCOREBOARD.colourscheme = CHOSEN_COLOURSCHEME
+    PAUSE_MENU.colourscheme = CHOSEN_COLOURSCHEME
 
-    for p in paddles:
+
+def render_elements():
+    SCREEN.fill(CHOSEN_COLOURSCHEME[0])
+
+    for p in [PADDLE1, PADDLE2]:
         p.draw()
+    BALL.draw()
+    SCOREBOARD.draw()
 
-    ball.draw()
-    scoreboard.draw()
+    y = 0
+    while y < WINDOW_SIZE[1]:
+        pygame.draw.rect(
+            SCREEN, CHOSEN_COLOURSCHEME[1], (WINDOW_SIZE[0] // 2 - 5, y, 5, 13))
+        y += 25
 
-    # static elements
-
-    x_mid = size[0] // 2
-
-    middle_line_y = 0
-    while middle_line_y < size[1]:
-        pygame.draw.rect(screen, colourscheme[1], (x_mid - 5, middle_line_y, 5, 13))
-        middle_line_y += 25
-
-    # stop-button
-    pygame.draw.rect(
-        screen, colourscheme[1], (x_mid - 55, size[1] - border_margin - 30, 10, 20))
-    pygame.draw.rect(
-        screen, colourscheme[1], (x_mid - 40, size[1] - border_margin - 30, 10, 20))
-
-    # start-button
-    pygame.gfxdraw.filled_trigon(screen, x_mid + 30, size[1] - border_margin - 30, x_mid + 30,
-                                 size[1] - border_margin - 10, x_mid + 55, size[1] - border_margin - 20, colourscheme[1])
+    # stop & start visuals
+    pygame.draw.rect(SCREEN, CHOSEN_COLOURSCHEME[1], PAUSE_BUTTON_RECT1)
+    pygame.draw.rect(SCREEN, CHOSEN_COLOURSCHEME[1], PAUSE_BUTTON_RECT2)
+    pygame.gfxdraw.filled_trigon(SCREEN, CONTINUE_TRIGON_POINTS[0][0], CONTINUE_TRIGON_POINTS[0][1], CONTINUE_TRIGON_POINTS[1]
+                                 [0], CONTINUE_TRIGON_POINTS[1][1], CONTINUE_TRIGON_POINTS[2][0], CONTINUE_TRIGON_POINTS[2][1], CHOSEN_COLOURSCHEME[1])
 
 
-def handle_pause(screen, continue_rect):
+def handle_pause():
+    clock = pygame.time.Clock()
     pause = 1
 
     while pause:
         mouse = pygame.mouse.get_pos()
+        PAUSE_MENU.draw()
 
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 pygame.quit()
                 return True
-            elif e.type == MOUSEBUTTONDOWN and continue_rect.collidepoint(mouse):
+            elif e.type == MOUSEBUTTONDOWN and CONTINUE_COL_RECT.collidepoint(mouse):
                 pause = 0
 
+        clock.tick(60)
+        pygame.display.update()
+
     return False
 
 
-def check_ball_collision(window_height, left_paddle, right_paddle, ball):
-    left_y_middle = left_paddle.y + left_paddle.height // 2
-    right_y_middle = right_paddle.y + right_paddle.height // 2
-    paddle_height = left_paddle.height
+def check_ball_collision():
+    left_y_middle = PADDLE1.y + PADDLE1.height // 2
+    right_y_middle = PADDLE2.y + PADDLE2.height // 2
+    paddle_height = PADDLE1.height
 
-    is_left_x_collision = ball.x - ball.radius <= left_paddle.x + \
-        left_paddle.width and ball.x_vel < 0
-    is_left_y_collision = left_paddle.y - \
-        ball.radius < ball.y < left_paddle.y + paddle_height + ball.radius
-    is_left_edge = ball.x < left_paddle.x + left_paddle.width
-    is_right_x_collision = ball.x + ball.radius >= right_paddle.x and ball.x_vel > 0
-    is_right_y_collision = right_paddle.y - \
-        ball.radius < ball.y < right_paddle.y + paddle_height + ball.radius
-    is_right_edge = ball.x > right_paddle.x
+    is_left_x_collision = BALL.x - BALL.radius <= PADDLE1.x + PADDLE1.width and BALL.x_vel < 0
+    is_left_y_collision = PADDLE1.y - BALL.radius < BALL.y < PADDLE1.y + paddle_height + BALL.radius
+    is_left_edge = BALL.x < PADDLE1.x + PADDLE1.width
+    is_right_x_collision = BALL.x + BALL.radius >= PADDLE2.x and BALL.x_vel > 0
+    is_right_y_collision = PADDLE2.y - BALL.radius < BALL.y < PADDLE2.y + paddle_height + BALL.radius
+    is_right_edge = BALL.x > PADDLE2.x
 
-    # wall-ball-collision
-    if ball.y - ball.radius <= 0:
-        ball.y_vel *= -1
-    elif ball.y + ball.radius >= window_height:
-        ball.y_vel *= -1
+    # wall-collision
+    if BALL.y - BALL.radius <= 0:
+        BALL.y_vel *= -1
+    elif BALL.y + BALL.radius >= WINDOW_SIZE[1]:
+        BALL.y_vel *= -1
 
-    # paddle-ball-collision
+    # paddle-collision
     if is_left_x_collision and is_left_y_collision:
         if is_left_edge:
-            ball.y_vel *= -1
+            BALL.y_vel *= -1
         else:
-            ball.y_vel = ((ball.y - left_y_middle) /
-                          paddle_height) * ball.max_vel
-            ball.x_vel *= -1
+            BALL.y_vel = ((BALL.y - left_y_middle) /
+                          paddle_height) * BALL.max_vel
+            BALL.x_vel = BALL.max_vel - abs(BALL.y_vel) * 0.5
     elif is_right_x_collision and is_right_y_collision:
         if is_right_edge:
-            ball.y_vel *= -1
+            BALL.y_vel *= -1
         else:
-            ball.y_vel = ((ball.y - right_y_middle) /
-                          paddle_height) * ball.max_vel
-            ball.x_vel *= -1
+            BALL.y_vel = ((BALL.y - right_y_middle) /
+                          paddle_height) * BALL.max_vel
+            BALL.x_vel = -BALL.max_vel + abs(BALL.y_vel) * 0.5
 
 
-def handle_config(is_high_res, gamemode):
-    if is_high_res:
-        size = (HR_WIDTH, HR_HEIGHT)
-        font = pygame.font.SysFont(
-            HR_FONT[0], HR_FONT[1], bold=True, italic=False)
-        border_margin = 15
-    else:
-        size = (DEFAULT_WIDTH, DEFAULT_HEIGHT)
-        font = pygame.font.SysFont(
-            DEFAULT_FONT[0], DEFAULT_FONT[1], bold=True, italic=False)
-        border_margin = 10
+def check_paddle_movement(keys):
+    if keys[K_f] and PADDLE1.y + PADDLE1.max_vel < WINDOW_SIZE[1] - PADDLE1.height:
+        PADDLE1.move(is_down=True)
 
-    return size, font, border_margin
+    if keys[K_d] and PADDLE1.y + PADDLE1.max_vel > 0:
+        PADDLE1.move(is_down=False)
 
+    if keys[K_j] and PADDLE2.y + PADDLE2.max_vel < WINDOW_SIZE[1] - PADDLE2.height:
+        PADDLE2.move(is_down=True)
 
-def check_paddle_movement(window_height, border_margin, keys, paddle1, paddle2):
-    if keys[K_f] and paddle1.y + paddle1.max_vel < window_height - border_margin - paddle1.height:
-        paddle1.move(down=True)
-
-    if keys[K_d] and paddle1.y + paddle1.max_vel > border_margin + 5:
-        paddle1.move(down=False)
-
-    if keys[K_j] and paddle2.y + paddle2.max_vel < window_height - border_margin - paddle2.height:
-        paddle2.move(down=True)
-
-    if keys[K_k] and paddle2.y + paddle2.max_vel > border_margin + 5:
-        paddle2.move(down=False)
+    if keys[K_k] and PADDLE2.y + PADDLE2.max_vel > 0:
+        PADDLE2.move(is_down=False)
 
 
-def check_goal(ball_x, window_width, scoreboard):
-    if ball_x <= 0:
-        scoreboard.update(0)
+def check_goal():
+    if BALL.x <= 0:
+        SCOREBOARD.update(0)
         return True
-    elif ball_x >= window_width:
-        scoreboard.update(1)
+    elif BALL.x >= WINDOW_SIZE[0]:
+        SCOREBOARD.update(1)
         return True
 
     return False
 
 
-def main(colourscheme, is_high_res, gamemode=None):
-    pygame.init()
+def end_and_reset():
+    # TODO display winner score
+    pygame.time.wait(2000)
 
-    size, font, border_margin = handle_config(is_high_res, gamemode)
-    screen = pygame.display.set_mode([size[0], size[1]])
-    pygame.display.set_caption("deus-pong")
+    SCOREBOARD.reset()
+    PADDLE1.reset()
+    PADDLE2.reset()
+    BALL.reset()
+
+
+def main(gamemode=None):
+    pygame.init()
+    pygame.display.set_caption(WINDOW_CAPTION)
     clock = pygame.time.Clock()
 
-    # visual elements
-    paddle1 = Paddle(screen, 0,
-                     size[1] // 2 - PADDLE_HEIGHT // 2, colourscheme[1])
-    paddle2 = Paddle(screen, size[0] - PADDLE_WIDTH,
-                     size[1] // 2 - PADDLE_HEIGHT // 2, colourscheme[1])
-    ball = Ball(screen, size[0] // 2, size[1] // 2, colourscheme[1])
-    scoreboard = Scoreboard(
-        screen, size[0] // 2, size[0] // 4, 3 * border_margin, colourscheme[1], font)
-
-    pause_rect = Rect(size[0] // 2 - 55, size[1] - border_margin - 30, 25, 20)
-    continue_rect = Rect(size[0] // 2 + 30, size[1] - border_margin - 30, 25, 20)
+    SCOREBOARD.font = pygame.font.Font("font/Hack-Bold.ttf", 60)
+    PAUSE_MENU.font = pygame.font.Font("font/Hack-Regular.ttf", 40)
 
     done = 0
     while not done:
@@ -158,29 +145,22 @@ def main(colourscheme, is_high_res, gamemode=None):
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 done = 1
-            elif e.type == pygame.MOUSEBUTTONDOWN and pause_rect.collidepoint(mouse):
-                if handle_pause(screen, continue_rect):
+            elif e.type == pygame.MOUSEBUTTONDOWN and PAUSE_COL_RECT.collidepoint(mouse):
+                if handle_pause():
                     done = 1
                     return
 
-        check_paddle_movement(size[1], border_margin, keys, paddle1, paddle2)
+        check_paddle_movement(keys)
+        BALL.move()
+        check_ball_collision()
 
-        ball.move()
-        check_ball_collision(size[1], paddle1, paddle2, ball)
-
-        if check_goal(ball.x, size[0], scoreboard):
-            if scoreboard.game_end():
-                scoreboard.reset()
-                paddle1.reset()
-                paddle2.reset()
-                ball.reset()
-                # TODO: tmp solution
-                pygame.time.wait(2000)
+        if check_goal():
+            if SCOREBOARD.score1 == WIN_SCORE or SCOREBOARD.score2 == WIN_SCORE:
+                end_and_reset()
             else:
-                ball.reset()
+                BALL.reset()
 
-        render_elements(screen, colourscheme, size, border_margin,
-                        (paddle1, paddle2), ball, scoreboard)
+        render_elements()
 
         pygame.display.update()
         clock.tick(60)
@@ -191,8 +171,6 @@ if __name__ == "__main__":
         description="Classic game of Pong with a few comfy additions")
 
     # TODO: add argument to choose between lan/wifi, ai & local (gamemode-argument in main)
-    parser.add_argument("-r", action="store_true",
-                        help="Use higher resolution (1200x900)")
     parser.add_argument("-c", default="default",
                         metavar="scheme", help="Select a colourscheme")
 
@@ -200,8 +178,7 @@ if __name__ == "__main__":
 
     if args.c not in COLOURSCHEMES.keys():
         print(f"{TERMINAL_RED}Colourscheme {args.c} not found: continuing with default option{TERMINAL_NC}")
-        args.c = "default"
+    else:
+        set_custom_colourscheme(args.c)
 
-    scheme = COLOURSCHEMES[args.c]
-
-    main(scheme, args.r)
+    main()
