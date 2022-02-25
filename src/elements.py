@@ -62,8 +62,8 @@ class Scoreboard:
         self.window_middle = window_middle
         self.x = x
         self.y = y
-        self.colour = colour
         self.score1 = self.score2 = 0
+        self.colour = colour
 
     def update(self, scorer):
         if scorer:

@@ -20,36 +20,52 @@ def render_elements(screen, colourscheme, size, border_margin, paddles, ball, sc
 
     x_mid = size[0] // 2
 
-    middle_y = 0
-    while middle_y < size[1]:
-        pygame.draw.rect(screen, colourscheme[1], (x_mid - 5, middle_y, 5, 13))
-        middle_y += 25
+    middle_line_y = 0
+    while middle_line_y < size[1]:
+        pygame.draw.rect(screen, colourscheme[1], (x_mid - 5, middle_line_y, 5, 13))
+        middle_line_y += 25
 
-    # stop
+    # stop-button
     pygame.draw.rect(
         screen, colourscheme[1], (x_mid - 55, size[1] - border_margin - 30, 10, 20))
     pygame.draw.rect(
         screen, colourscheme[1], (x_mid - 40, size[1] - border_margin - 30, 10, 20))
 
-    # start
+    # start-button
     pygame.gfxdraw.filled_trigon(screen, x_mid + 30, size[1] - border_margin - 30, x_mid + 30,
                                  size[1] - border_margin - 10, x_mid + 55, size[1] - border_margin - 20, colourscheme[1])
 
 
-def start_pause():
-    # TODO
-    print("pause started")
+def handle_pause(screen, continue_rect):
+    pause = 1
+
+    while pause:
+        mouse = pygame.mouse.get_pos()
+
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                pygame.quit()
+                return True
+            elif e.type == MOUSEBUTTONDOWN and continue_rect.collidepoint(mouse):
+                pause = 0
+
+    return False
 
 
-def stop_pause():
-    # TODO
-    print("pause ended")
-
-
-def handle_collision(window_height, left_paddle, right_paddle, ball):
-    left_middle = left_paddle.y + left_paddle.height // 2
-    right_middle = right_paddle.y + right_paddle.height // 2
+def check_ball_collision(window_height, left_paddle, right_paddle, ball):
+    left_y_middle = left_paddle.y + left_paddle.height // 2
+    right_y_middle = right_paddle.y + right_paddle.height // 2
     paddle_height = left_paddle.height
+
+    is_left_x_collision = ball.x - ball.radius <= left_paddle.x + \
+        left_paddle.width and ball.x_vel < 0
+    is_left_y_collision = left_paddle.y - \
+        ball.radius < ball.y < left_paddle.y + paddle_height + ball.radius
+    is_left_edge = ball.x < left_paddle.x + left_paddle.width
+    is_right_x_collision = ball.x + ball.radius >= right_paddle.x and ball.x_vel > 0
+    is_right_y_collision = right_paddle.y - \
+        ball.radius < ball.y < right_paddle.y + paddle_height + ball.radius
+    is_right_edge = ball.x > right_paddle.x
 
     # wall-ball-collision
     if ball.y - ball.radius <= 0:
@@ -58,22 +74,24 @@ def handle_collision(window_height, left_paddle, right_paddle, ball):
         ball.y_vel *= -1
 
     # paddle-ball-collision
-    if ball.x - ball.radius <= left_paddle.x + left_paddle.width:
-        if left_paddle.y < ball.y < left_paddle.y + paddle_height:
-            ball.y_vel = ((ball.y - left_middle) /
+    if is_left_x_collision and is_left_y_collision:
+        if is_left_edge:
+            ball.y_vel *= -1
+        else:
+            ball.y_vel = ((ball.y - left_y_middle) /
                           paddle_height) * ball.max_vel
             ball.x_vel *= -1
-            print(ball.y_vel)
-    elif ball.x + ball.radius >= right_paddle.x:
-        if right_paddle.y < ball.y < right_paddle.y + paddle_height:
-            ball.y_vel = ((ball.y - right_middle) /
+    elif is_right_x_collision and is_right_y_collision:
+        if is_right_edge:
+            ball.y_vel *= -1
+        else:
+            ball.y_vel = ((ball.y - right_y_middle) /
                           paddle_height) * ball.max_vel
             ball.x_vel *= -1
-            print(ball.y_vel)
 
 
-def handle_config(high_res, gamemode):
-    if high_res:
+def handle_config(is_high_res, gamemode):
+    if is_high_res:
         size = (HR_WIDTH, HR_HEIGHT)
         font = pygame.font.SysFont(
             HR_FONT[0], HR_FONT[1], bold=True, italic=False)
@@ -112,27 +130,26 @@ def check_goal(ball_x, window_width, scoreboard):
     return False
 
 
-def main(colourscheme, high_res, gamemode=None):
+def main(colourscheme, is_high_res, gamemode=None):
     pygame.init()
 
-    size, font, border_margin = handle_config(high_res, gamemode)
+    size, font, border_margin = handle_config(is_high_res, gamemode)
     screen = pygame.display.set_mode([size[0], size[1]])
-    pygame.display.set_caption("PONG")
+    pygame.display.set_caption("deus-pong")
     clock = pygame.time.Clock()
 
     # visual elements
-    paddle1 = Paddle(screen, border_margin,
+    paddle1 = Paddle(screen, 0,
                      size[1] // 2 - PADDLE_HEIGHT // 2, colourscheme[1])
-    paddle2 = Paddle(screen, size[0] - border_margin - PADDLE_WIDTH,
+    paddle2 = Paddle(screen, size[0] - PADDLE_WIDTH,
                      size[1] // 2 - PADDLE_HEIGHT // 2, colourscheme[1])
     ball = Ball(screen, size[0] // 2, size[1] // 2, colourscheme[1])
     scoreboard = Scoreboard(
         screen, size[0] // 2, size[0] // 4, 3 * border_margin, colourscheme[1], font)
 
-    act_rect = Rect(size[0] // 2 - 55, size[1] - border_margin - 30, 25, 20)
-    act_trigon = Rect(size[0] // 2 + 30, size[1] - border_margin - 30, 25, 20)
+    pause_rect = Rect(size[0] // 2 - 55, size[1] - border_margin - 30, 25, 20)
+    continue_rect = Rect(size[0] // 2 + 30, size[1] - border_margin - 30, 25, 20)
 
-    pause = 0
     done = 0
     while not done:
         keys = pygame.key.get_pressed()
@@ -141,18 +158,15 @@ def main(colourscheme, high_res, gamemode=None):
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 done = 1
-            elif e.type == pygame.MOUSEBUTTONDOWN:
-                if act_rect.collidepoint(mouse) and not pause:
-                    pause = 1
-                    start_pause()
-                elif act_trigon.collidepoint(mouse) and pause:
-                    pause = 0
-                    stop_pause()
+            elif e.type == pygame.MOUSEBUTTONDOWN and pause_rect.collidepoint(mouse):
+                if handle_pause(screen, continue_rect):
+                    done = 1
+                    return
 
         check_paddle_movement(size[1], border_margin, keys, paddle1, paddle2)
 
         ball.move()
-        handle_collision(size[1], paddle1, paddle2, ball)
+        check_ball_collision(size[1], paddle1, paddle2, ball)
 
         if check_goal(ball.x, size[0], scoreboard):
             if scoreboard.game_end():
@@ -160,7 +174,7 @@ def main(colourscheme, high_res, gamemode=None):
                 paddle1.reset()
                 paddle2.reset()
                 ball.reset()
-                # tmp solution
+                # TODO: tmp solution
                 pygame.time.wait(2000)
             else:
                 ball.reset()
