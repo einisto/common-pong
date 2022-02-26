@@ -82,17 +82,16 @@ class Scoreboard:
 
 
 class PauseMenu:
-    def __init__(self, screen, window_size, display_text, bg_size, colourscheme):
+    def __init__(self, screen, window_size, bg_size, colourscheme):
         self.screen = screen
         self.bg_rect = pygame.Rect(0, 0, bg_size[0], bg_size[1])
         self.bg_rect.center = (window_size[0] // 2, window_size[1] // 2)
-        self.display_text = display_text
         self.colourscheme = colourscheme
         self.font = None
 
-    def draw(self):
+    def draw(self, display_text):
         pygame.draw.rect(self.screen, self.colourscheme[0], self.bg_rect)
         pygame.draw.rect(self.screen, self.colourscheme[1], self.bg_rect, 3)
-        label = self.font.render(self.display_text, 1, self.colourscheme[1])
+        label = self.font.render(display_text, 1, self.colourscheme[1])
         label_rect = label.get_rect(center=self.bg_rect.center)
         self.screen.blit(label, label_rect)

@@ -44,7 +44,7 @@ def handle_pause():
 
     while pause:
         mouse = pygame.mouse.get_pos()
-        PAUSE_MENU.draw()
+        PAUSE_MENU.draw("GAME PAUSED")
 
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
@@ -57,6 +57,30 @@ def handle_pause():
         pygame.display.update()
 
     return False
+
+
+def end_and_reset(winner):
+    clock = pygame.time.Clock()
+    end = 1
+
+    while end:
+        mouse = pygame.mouse.get_pos()
+        PAUSE_MENU.draw(f"P{winner} WON")
+
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                pygame.quit()
+                return True
+            elif e.type == MOUSEBUTTONDOWN and CONTINUE_COL_RECT.collidepoint(mouse):
+                end = 0
+
+        clock.tick(60)
+        pygame.display.update()
+
+    SCOREBOARD.reset()
+    PADDLE1.reset()
+    PADDLE2.reset()
+    BALL.reset()
 
 
 def check_ball_collision():
@@ -111,22 +135,17 @@ def check_paddle_movement(keys):
 def check_goal():
     if BALL.x <= 0:
         SCOREBOARD.update(0)
-        return True
     elif BALL.x >= WINDOW_SIZE[0]:
         SCOREBOARD.update(1)
-        return True
+    else:
+        return
 
-    return False
-
-
-def end_and_reset():
-    # TODO display winner score
-    pygame.time.wait(2000)
-
-    SCOREBOARD.reset()
-    PADDLE1.reset()
-    PADDLE2.reset()
-    BALL.reset()
+    if SCOREBOARD.score1 == WIN_SCORE:
+        end_and_reset("1")
+    elif SCOREBOARD.score2 == WIN_SCORE:
+        end_and_reset("2")
+    else:
+        BALL.reset()
 
 
 def main(gamemode=None):
@@ -153,13 +172,7 @@ def main(gamemode=None):
         check_paddle_movement(keys)
         BALL.move()
         check_ball_collision()
-
-        if check_goal():
-            if SCOREBOARD.score1 == WIN_SCORE or SCOREBOARD.score2 == WIN_SCORE:
-                end_and_reset()
-            else:
-                BALL.reset()
-
+        check_goal()
         render_elements()
 
         pygame.display.update()
@@ -167,18 +180,16 @@ def main(gamemode=None):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Classic game of Pong with a few comfy additions")
+    parser = argparse.ArgumentParser(description="Classic game of Pong with a few comfy additions")
 
     # TODO: add argument to choose between lan/wifi, ai & local (gamemode-argument in main)
-    parser.add_argument("-c", default="default",
-                        metavar="scheme", help="Select a colourscheme")
+    parser.add_argument("-c", default="default", metavar="scheme", help="Select a colourscheme")
 
     args = parser.parse_args()
 
-    if args.c not in COLOURSCHEMES.keys():
-        print(f"{TERMINAL_RED}Colourscheme {args.c} not found: continuing with default option{TERMINAL_NC}")
-    else:
+    if args.c in COLOURSCHEMES.keys():
         set_custom_colourscheme(args.c)
+    else:
+        print(f"{TERMINAL_RED}Colourscheme {args.c} not found: continuing with default option{TERMINAL_NC}")
 
     main()
