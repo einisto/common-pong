@@ -72,8 +72,8 @@ class Scoreboard:
             self.score2 += 1
 
     def draw(self):
-        label1 = self.font.render(str(self.score1), 1, self.colourscheme[2])
-        label2 = self.font.render(str(self.score2), 1, self.colourscheme[2])
+        label1 = self.font.render(str(self.score1), 1, self.colourscheme[3])
+        label2 = self.font.render(str(self.score2), 1, self.colourscheme[3])
         label1_rect = label1.get_rect(center=self.pos1)
         label2_rect = label2.get_rect(center=self.pos2)
 
@@ -95,7 +95,7 @@ class PauseMenu:
 
     def draw(self, display_text):
         pygame.draw.rect(self.screen, self.colourscheme[0], self.bg_rect)
-        pygame.draw.rect(self.screen, self.colourscheme[1], self.bg_rect, 3)
+        pygame.draw.rect(self.screen, self.colourscheme[2], self.bg_rect, 3)
         label = self.font.render(display_text, 1, self.colourscheme[1])
         label_rect = label.get_rect(center=self.bg_rect.center)
         self.screen.blit(label, label_rect)

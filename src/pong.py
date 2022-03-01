@@ -27,7 +27,7 @@ class Pong:
         self.paddle2 = Paddle(self.screen, (self.window_size[0] - self.paddle_w, self.window_size[1] // 2 - self.paddle_h // 2),
                               self.paddle_max_vel, (self.paddle_w, self.paddle_h), self.colourscheme[1])
         self.ball = Ball(self.screen, (self.window_size[0] // 2, self.window_size[1] // 2), self.ball_radius,
-                         self.ball_max_vel, self.colourscheme[1])
+                         self.ball_max_vel, self.colourscheme[2])
         self.scoreboard = Scoreboard(self.screen, self.window_size, self.colourscheme, self.font_bold)
         self.pause_menu = PauseMenu(self.screen, self.window_size, (self.window_size[0] // 2, self.window_size[1] // 2),
                                     self.colourscheme, self.font_regular)
@@ -60,7 +60,6 @@ class Pong:
                     pygame.quit()
                     return True
                 elif e.type == MOUSEBUTTONDOWN and self.continue_col_rect.collidepoint(mouse):
-                    print("continuing")
                     pause = 0
 
             clock.tick(60)
@@ -81,14 +80,14 @@ class Pong:
 
             y = 0
             while y < self.window_size[1]:
-                pygame.draw.rect(self.screen, self.colourscheme[1], (self.window_size[0] // 2 - 5, y, 5, 13))
+                pygame.draw.rect(self.screen, self.colourscheme[3], (self.window_size[0] // 2 - 5, y, 5, 13))
                 y += 25
 
             # stop & start visuals
-            pygame.draw.rect(self.screen, self.colourscheme[1], self.pause_button_rect1)
-            pygame.draw.rect(self.screen, self.colourscheme[1], self.pause_button_rect2)
+            pygame.draw.rect(self.screen, self.colourscheme[3], self.pause_button_rect1)
+            pygame.draw.rect(self.screen, self.colourscheme[3], self.pause_button_rect2)
             pygame.gfxdraw.filled_trigon(self.screen, self.continue_trigon_poings[0][0], self.continue_trigon_poings[0][1], self.continue_trigon_poings[1][0],
-                                         self.continue_trigon_poings[1][1], self.continue_trigon_poings[2][0], self.continue_trigon_poings[2][1], self.colourscheme[1])
+                                         self.continue_trigon_poings[1][1], self.continue_trigon_poings[2][0], self.continue_trigon_poings[2][1], self.colourscheme[3])
 
         def end_and_reset(winner):
             clock = pygame.time.Clock()
