@@ -5,6 +5,7 @@ from constants import *
 
 
 class Paddle:
+
     def __init__(self, screen, pos, paddle_max_vel, paddle_size, colour):
         self.screen = screen
         self.x = self.original_x = pos[0]
@@ -17,10 +18,10 @@ class Paddle:
     def draw(self):
         pygame.draw.rect(self.screen, self.colour, (self.x, self.y, self.width, self.height))
 
-    def move(self, is_down):
-        if is_down:
+    def move(self, dir):
+        if dir == 2:
             self.y += self.max_vel
-        else:
+        elif dir == 1:
             self.y -= self.max_vel
 
     def reset(self):
@@ -29,6 +30,7 @@ class Paddle:
 
 
 class Ball:
+
     def __init__(self, screen, pos, ball_radius, ball_max_vel, colour):
         self.screen = screen
         self.x = self.original_x = pos[0]
@@ -54,13 +56,14 @@ class Ball:
 
 
 class Scoreboard:
-    def __init__(self, screen, window_size, colourscheme):
+
+    def __init__(self, screen, window_size, colourscheme, font):
         self.screen = screen
         self.pos1 = (window_size[0] // 4, window_size[1] // 8)
         self.pos2 = (window_size[0] // 4 * 3, window_size[1] // 8)
         self.score1 = self.score2 = 0
         self.colourscheme = colourscheme
-        self.font = None
+        self.font = font
 
     def update(self, is_scorer_1):
         if is_scorer_1:
@@ -82,12 +85,13 @@ class Scoreboard:
 
 
 class PauseMenu:
-    def __init__(self, screen, window_size, bg_size, colourscheme):
+
+    def __init__(self, screen, window_size, bg_size, colourscheme, font):
         self.screen = screen
         self.bg_rect = pygame.Rect(0, 0, bg_size[0], bg_size[1])
         self.bg_rect.center = (window_size[0] // 2, window_size[1] // 2)
         self.colourscheme = colourscheme
-        self.font = None
+        self.font = font
 
     def draw(self, display_text):
         pygame.draw.rect(self.screen, self.colourscheme[0], self.bg_rect)
