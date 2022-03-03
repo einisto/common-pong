@@ -17,8 +17,7 @@ def check_colourscheme(colourscheme_name_lowercase):
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Classic game of Pong with a few comfy additions")
 
-    # TODO: add flag to choose between lan/wifi, ai & local (gamemode-argument in main)
-    parser.add_argument("-g", default=0, metavar="mode", help="Select a gamemode")
+    parser.add_argument("-g", default=0, metavar="num", help="Select a gamemode")
     parser.add_argument("-c", default="default", metavar="name", help="Select a colourscheme")
 
     args = parser.parse_args()
@@ -28,7 +27,7 @@ def parse_arguments():
 
 def main(gamemode, colourscheme):
     pygame.init()
-    pygame.display.set_caption("deus-pong")
+    pygame.display.set_caption("common-pong")
     clock = pygame.time.Clock()
 
     font_regular = pygame.font.Font("font/Hack-Regular.ttf", 40)
