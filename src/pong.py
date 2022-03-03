@@ -22,6 +22,7 @@ class Pong:
         self.paddle_max_vel = 5
         self.ball_radius = 7
         self.ball_max_vel = 10
+        self.vel_hit_multip = 1.05
         self.paddle1 = Paddle(self.screen, (0, self.window_size[1] // 2 - self.paddle_h // 2), self.paddle_max_vel,
                               (self.paddle_w, self.paddle_h), self.colourscheme[1])
         self.paddle2 = Paddle(self.screen, (self.window_size[0] - self.paddle_w, self.window_size[1] // 2 - self.paddle_h // 2),
@@ -60,6 +61,8 @@ class Pong:
                     pygame.quit()
                     return True
                 elif e.type == MOUSEBUTTONDOWN and self.continue_col_rect.collidepoint(mouse):
+                    pause = 0
+                elif e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE:
                     pause = 0
 
             clock.tick(60)
@@ -108,6 +111,8 @@ class Pong:
                         return True
                     elif e.type == MOUSEBUTTONDOWN and self.continue_col_rect.collidepoint(mouse):
                         end = 0
+                    elif e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE:
+                        end = 0
 
                 clock.tick(60)
                 pygame.display.update()
@@ -144,12 +149,14 @@ class Pong:
                 else:
                     self.ball.y_vel = ((self.ball.y - left_y_middle) / paddle_height) * self.ball.max_vel
                     self.ball.x_vel = self.ball.max_vel - abs(self.ball.y_vel) * 0.5
+                    self.ball.max_vel *= self.vel_hit_multip
             elif is_right_x_collision and is_right_y_collision:
                 if is_right_edge:
                     self.ball.y_vel *= -1
                 else:
                     self.ball.y_vel = ((self.ball.y - right_y_middle) / paddle_height) * self.ball.max_vel
                     self.ball.x_vel = -self.ball.max_vel + abs(self.ball.y_vel) * 0.5
+                    self.ball.max_vel *= self.vel_hit_multip
 
         def check_goal():
             if self.ball.x <= 0:
@@ -180,7 +187,7 @@ class Pong:
                 self.paddle2.move(dir=1)
 
         def check_ai_movement():
-            move = self.ai.check_required_move(self.ball.y)
+            move = self.ai.check_required_move((self.ball.x, self.ball.y))
 
             if move:
                 self.paddle2.move(move)

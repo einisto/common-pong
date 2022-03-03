@@ -48,6 +48,10 @@ def main(gamemode, colourscheme):
                 if pong.handle_pause():
                     done = 1
                     return
+            elif e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE:
+                if pong.handle_pause():
+                    done = 1
+                    return
 
         pong.update(keys)
 

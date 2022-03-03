@@ -8,13 +8,13 @@ class EasyOpponent:
         self.paddle_top = self.paddle_top_original = y_pos
         self.paddle_bottom = self.paddle_bottom_original = y_pos + paddle_height
 
-    def check_required_move(self, ball_y_pos):
-        if ball_y_pos < self.paddle_top:
+    def check_required_move(self, ball_pos):
+        if ball_pos[1] < self.paddle_top:
             # paddle up
             self.paddle_top -= self.paddle_max_vel
             self.paddle_bottom -= self.paddle_max_vel
             return 1
-        elif ball_y_pos > self.paddle_bottom:
+        elif ball_pos[1] > self.paddle_bottom:
             # paddle down
             self.paddle_top += self.paddle_max_vel
             self.paddle_bottom += self.paddle_max_vel

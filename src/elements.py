@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import pygame
+import random
 from pygame.locals import *
 from constants import *
 
@@ -36,7 +37,7 @@ class Ball:
         self.x = self.original_x = pos[0]
         self.y = self.original_y = pos[1]
         self.radius = ball_radius
-        self.max_vel = ball_max_vel
+        self.max_vel = self.original_vel = ball_max_vel
         self.x_vel = ball_max_vel
         self.y_vel = 0
         self.colour = colour
@@ -51,8 +52,9 @@ class Ball:
     def reset(self):
         self.x = self.original_x
         self.y = self.original_y
+        self.max_vel = self.original_vel
         self.y_vel = 0
-        self.x_vel *= -1
+        self.x_vel = self.original_vel if random.getrandbits(1) else -self.original_vel
 
 
 class Scoreboard:
@@ -95,7 +97,7 @@ class PauseMenu:
 
     def draw(self, display_text):
         pygame.draw.rect(self.screen, self.colourscheme[0], self.bg_rect)
-        pygame.draw.rect(self.screen, self.colourscheme[2], self.bg_rect, 3)
+        pygame.draw.rect(self.screen, self.colourscheme[2], self.bg_rect, 8)
         label = self.font.render(display_text, 1, self.colourscheme[1])
         label_rect = label.get_rect(center=self.bg_rect.center)
         self.screen.blit(label, label_rect)
