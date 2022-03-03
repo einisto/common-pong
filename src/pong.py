@@ -4,7 +4,6 @@ from pygame import gfxdraw
 from pygame.locals import *
 from elements import *
 from artificial import *
-from math import sin, cos
 
 
 class Pong:
@@ -42,7 +41,11 @@ class Pong:
 
         def set_ai():
             if self.gamemode == 1:
-                self.ai = EasyOpponent(self.paddle2.y, self.paddle2.height, self.paddle2.max_vel)
+                self.ai = EasyOpponent(self.paddle2.y + 0.5 * self.paddle2.height, self.paddle2.max_vel, self.paddle2.height, self.window_size[1])
+            elif self.gamemode == 2:
+                self.left_ai = EasyOpponent(self.paddle1.y + 0.5 * self.paddle1.height, self.paddle1.max_vel, self.paddle1.height, self.window_size[1])
+                self.right_ai = EasyOpponent(self.paddle2.y + 0.5 * self.paddle2.height, self.paddle2.max_vel, self.paddle2.height, self.window_size[1])
+                self.ball.y_vel = random.random() * self.ball.max_vel * 0.2
             else:
                 self.ai = None
 
@@ -101,9 +104,13 @@ class Pong:
 
                 if self.gamemode == 0:
                     self.pause_menu.draw(f"{winner} WON")
-                else:
+                elif self.gamemode == 1:
                     self.pause_menu.draw(f"{'P' if winner == '1' else 'AI'} WON")
                     self.ai.reset()
+                elif self.gamemode == 2:
+                    self.pause_menu.draw(f"{'P' if winner == '1' else 'AI'} WON")
+                    self.left_ai.reset()
+                    self.right_ai.reset()
 
                 for e in pygame.event.get():
                     if e.type == pygame.QUIT:
@@ -120,7 +127,7 @@ class Pong:
             self.scoreboard.reset()
             self.paddle1.reset()
             self.paddle2.reset()
-            self.ball.reset()
+            self.ball.reset(randomise=(True if self.gamemode == 2 else False))
 
         def check_ball_collision():
             left_y_middle = self.paddle1.y + self.paddle1.height // 2
@@ -171,13 +178,13 @@ class Pong:
             elif self.scoreboard.score2 == self.win_score:
                 end_and_reset("2")
             else:
-                self.ball.reset()
+                self.ball.reset(randomise=(True if self.gamemode == 2 else False))
 
         def check_paddle_movement():
-            if keys[K_f] and self.paddle1.y + self.paddle1.max_vel < self.window_size[1] - self.paddle1.height:
+            if keys[K_f] and self.paddle1.y + self.paddle1.max_vel < self.window_size[1] - self.paddle1.height and self.gamemode != 2:
                 self.paddle1.move(dir=2)
 
-            if keys[K_d] and self.paddle1.y + self.paddle1.max_vel > 0:
+            if keys[K_d] and self.paddle1.y + self.paddle1.max_vel > 0 and self.gamemode != 2:
                 self.paddle1.move(dir=1)
 
             if keys[K_j] and self.paddle2.y + self.paddle2.max_vel < self.window_size[1] - self.paddle2.height and self.gamemode == 0:
@@ -187,13 +194,17 @@ class Pong:
                 self.paddle2.move(dir=1)
 
         def check_ai_movement():
-            move = self.ai.check_required_move((self.ball.x, self.ball.y))
-
-            if move:
+            if self.gamemode == 1:
+                move = self.ai.check_required_move((self.ball.x, self.ball.y))
                 self.paddle2.move(move)
+            elif self.gamemode == 2:
+                right_move = self.right_ai.check_required_move((self.ball.x, self.ball.y))
+                left_move = self.left_ai.check_required_move((self.ball.x, self.ball.y))
+                self.paddle1.move(right_move)
+                self.paddle2.move(left_move)
 
         check_paddle_movement()
-        if self.ai:
+        if self.gamemode > 0:
             check_ai_movement()
         self.ball.move()
         check_ball_collision()

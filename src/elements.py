@@ -49,11 +49,11 @@ class Ball:
         self.x += self.x_vel
         self.y += self.y_vel
 
-    def reset(self):
+    def reset(self, randomise):
         self.x = self.original_x
         self.y = self.original_y
         self.max_vel = self.original_vel
-        self.y_vel = 0
+        self.y_vel = random.random() * self.max_vel * 0.2 if randomise else 0
         self.x_vel = self.original_vel if random.getrandbits(1) else -self.original_vel
 
 
