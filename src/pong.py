@@ -81,7 +81,6 @@ class Pong:
             for p in [self.paddle1, self.paddle2]:
                 p.draw()
 
-            self.ball.draw()
             self.scoreboard.draw()
 
             y = 0
@@ -94,6 +93,8 @@ class Pong:
             pygame.draw.rect(self.screen, self.colourscheme[3], self.pause_button_rect2)
             pygame.gfxdraw.filled_trigon(self.screen, self.continue_trigon_poings[0][0], self.continue_trigon_poings[0][1], self.continue_trigon_poings[1][0],
                                          self.continue_trigon_poings[1][1], self.continue_trigon_poings[2][0], self.continue_trigon_poings[2][1], self.colourscheme[3])
+
+            self.ball.draw()
 
         def end_and_reset(winner):
             clock = pygame.time.Clock()

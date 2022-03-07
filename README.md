@@ -1,6 +1,6 @@
 <div align="center" style="margin-bottom: 40px">
 <h2 style="margin-bottom: 20px">Classic game of Pong with a few comfy additions</h2>
-<img src="ss.png" alt="UI with dracula-theme" widht="400" height="400">
+<img src="sample.gif" alt="AI vs AI with dracula-theme" widht="400" height="400">
 </div>
 
 ## About
